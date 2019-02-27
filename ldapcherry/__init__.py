@@ -588,7 +588,7 @@ class LdapCherry(object):
             # return to login page (with quoted url in query string)
             if redir_login:
                 raise cherrypy.HTTPRedirect(
-                    "/signin?url=%(url)s" % {'url': quoted_requrl},
+                    "signin?url=%(url)s" % {'url': quoted_requrl},
                     )
             else:
                 raise cherrypy.HTTPError(
@@ -600,7 +600,7 @@ class LdapCherry(object):
                 or not cherrypy.session['connected']:
             if redir_login:
                 raise cherrypy.HTTPRedirect(
-                    "/signin?url=%(url)s" % {'url': quoted_requrl},
+                    "signin?url=%(url)s" % {'url': quoted_requrl},
                     )
             else:
                 raise cherrypy.HTTPError(
@@ -625,7 +625,7 @@ class LdapCherry(object):
         else:
             if redir_login:
                 raise cherrypy.HTTPRedirect(
-                    "/signin?url=%(url)s" % {'url': quoted_requrl},
+                    "signin?url=%(url)s" % {'url': quoted_requrl},
                     )
             else:
                 raise cherrypy.HTTPError(
@@ -912,7 +912,7 @@ class LdapCherry(object):
             )
             cherrypy.session[SESSION_KEY] = cherrypy.request.login = login
             if url is None:
-                redirect = "/"
+                redirect = "/ldap"
             else:
                 redirect = url
             raise cherrypy.HTTPRedirect(redirect)
@@ -928,7 +928,7 @@ class LdapCherry(object):
                 qs = ''
             else:
                 qs = '?url=' + quote_plus(url)
-            raise cherrypy.HTTPRedirect("/signin" + qs)
+            raise cherrypy.HTTPRedirect("signin" + qs)
 
     @cherrypy.expose
     @exception_decorator
@@ -945,7 +945,7 @@ class LdapCherry(object):
             msg="user '%(user)s' logout" % {'user': username},
             severity=logging.INFO
         )
-        raise cherrypy.HTTPRedirect("/signin")
+        raise cherrypy.HTTPRedirect("signin")
 
     @cherrypy.expose
     @exception_decorator
@@ -1081,7 +1081,7 @@ class LdapCherry(object):
         try:
             referer = cherrypy.request.headers['Referer']
         except Exception as e:
-            referer = '/'
+            referer = '/ldap'
         self._deleteuser(user)
         self._add_notification('User Deleted')
         raise cherrypy.HTTPRedirect(referer)
@@ -1100,7 +1100,7 @@ class LdapCherry(object):
             try:
                 referer = cherrypy.request.headers['Referer']
             except Exception as e:
-                referer = '/'
+                referer = '/ldap'
             raise cherrypy.HTTPRedirect(referer)
 
         graph = {}

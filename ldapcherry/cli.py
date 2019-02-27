@@ -44,8 +44,14 @@ def start(configfile=None, daemonize=False, environment=None,
         return result
     cherrypy.lib.reprconf.Parser.as_dict = new_as_dict
 
+    class Root(object):
+        @cherrypy.expose
+        def index(self):
+            return 'Nothing here'
+
     instance = LdapCherry()
-    app = cherrypy.tree.mount(instance, '/', configfile)
+    root= cherrypy.tree.mount(Root())
+    app = cherrypy.tree.mount(instance, '/ldap', configfile)
     cherrypy.config.update(configfile)
     instance.reload(app.config, debug)
 
