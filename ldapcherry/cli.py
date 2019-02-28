@@ -14,11 +14,11 @@ import cherrypy
 from cherrypy.process import plugins, servers
 from cherrypy import Application
 from ldapcherry import LdapCherry
-
+import configparser
 
 def start(configfile=None, daemonize=False, environment=None,
           fastcgi=False, scgi=False, pidfile=None,
-          cgi=False, debug=False):
+          cgi=False, debug=False,context_root='/'):
     """Subscribe all engine plugins and start the engine."""
     sys.path = [''] + sys.path
 
@@ -50,8 +50,9 @@ def start(configfile=None, daemonize=False, environment=None,
             return 'Nothing here'
 
     instance = LdapCherry()
-    root= cherrypy.tree.mount(Root())
-    app = cherrypy.tree.mount(instance, '/ldap', configfile)
+    if context_root != '/':
+        root= cherrypy.tree.mount(Root())
+    app = cherrypy.tree.mount(instance, context_root, configfile)
     cherrypy.config.update(configfile)
     instance.reload(app.config, debug)
 
@@ -144,10 +145,20 @@ def main():
     if not os.path.isfile(options.config):
         print('configuration file "' + options.config + '" doesn\'t exist')
         exit(1)
+    
+    context_root='/'
+    try:
+        config = configparser.ConfigParser()
+        config.read(options.config)
+        context_root=config['global'].get('context_root','"/"')[1:-1]
+        print(context_root)
+    except Exception as e:
+        print("something wrong with config file",str(e))
+        exit(1)
 
     start(options.config, options.daemonize,
           options.environment, options.fastcgi, options.scgi,
-          options.pidfile, options.cgi, options.debug)
+          options.pidfile, options.cgi, options.debug,context_root)
 
 
 if __name__ == '__main__':

@@ -41,6 +41,8 @@ SESSION_KEY = '_cp_username'
 
 
 class LdapCherry(object):
+    def __init__(self):
+        self.context_root = '/'
 
     def _handle_exception(self, e):
         if hasattr(e, 'log'):
@@ -408,6 +410,8 @@ class LdapCherry(object):
                     'debug',
                     )
                 )
+            # set context root
+            self.context_root=self._get_param('global','context_root',config,'/')
             # configure access log
             self._set_access_log(config, level)
             # configure error log
@@ -588,7 +592,7 @@ class LdapCherry(object):
             # return to login page (with quoted url in query string)
             if redir_login:
                 raise cherrypy.HTTPRedirect(
-                    "signin?url=%(url)s" % {'url': quoted_requrl},
+                    self.context_root+"signin?url=%(url)s" % {'url': quoted_requrl},
                     )
             else:
                 raise cherrypy.HTTPError(
@@ -600,7 +604,7 @@ class LdapCherry(object):
                 or not cherrypy.session['connected']:
             if redir_login:
                 raise cherrypy.HTTPRedirect(
-                    "signin?url=%(url)s" % {'url': quoted_requrl},
+                    self.context_root+"signin?url=%(url)s" % {'url': quoted_requrl},
                     )
             else:
                 raise cherrypy.HTTPError(
@@ -625,7 +629,7 @@ class LdapCherry(object):
         else:
             if redir_login:
                 raise cherrypy.HTTPRedirect(
-                    "signin?url=%(url)s" % {'url': quoted_requrl},
+                    self.context_root+"signin?url=%(url)s" % {'url': quoted_requrl},
                     )
             else:
                 raise cherrypy.HTTPError(
@@ -884,7 +888,7 @@ class LdapCherry(object):
     def signin(self, url=None):
         """simple signin page
         """
-        return self.temp['login.tmpl'].render(url=url)
+        return self.temp['login.tmpl'].render(url=url,context_root=self.context_root)
 
     @cherrypy.expose
     @exception_decorator
@@ -912,7 +916,7 @@ class LdapCherry(object):
             )
             cherrypy.session[SESSION_KEY] = cherrypy.request.login = login
             if url is None:
-                redirect = "/ldap"
+                redirect = self.context_root
             else:
                 redirect = url
             raise cherrypy.HTTPRedirect(redirect)
@@ -928,7 +932,7 @@ class LdapCherry(object):
                 qs = ''
             else:
                 qs = '?url=' + quote_plus(url)
-            raise cherrypy.HTTPRedirect("signin" + qs)
+            raise cherrypy.HTTPRedirect(self.context_root+"signin" + qs)
 
     @cherrypy.expose
     @exception_decorator
@@ -945,7 +949,7 @@ class LdapCherry(object):
             msg="user '%(user)s' logout" % {'user': username},
             severity=logging.INFO
         )
-        raise cherrypy.HTTPRedirect("signin")
+        raise cherrypy.HTTPRedirect(self.context_root+"signin")
 
     @cherrypy.expose
     @exception_decorator
@@ -966,6 +970,7 @@ class LdapCherry(object):
             attrs_list=attrs_list,
             searchresult=user_attrs,
             notifications=self._empty_notification(),
+            context_root=self.context_root
             )
 
     @cherrypy.expose
@@ -985,6 +990,7 @@ class LdapCherry(object):
             is_admin=is_admin,
             custom_js=self.custom_js,
             notifications=self._empty_notification(),
+            context_root=self.context_root
             )
 
     @cherrypy.expose
@@ -1022,6 +1028,7 @@ class LdapCherry(object):
             is_admin=is_admin,
             custom_js=self.custom_js,
             notifications=self._empty_notification(),
+            context_root=self.context_root
             )
 
     @cherrypy.expose
@@ -1051,7 +1058,8 @@ class LdapCherry(object):
                 attributes=self.attributes.attributes,
                 values=None,
                 modify=False,
-                autofill=True
+                autofill=True,
+                context_root=self.context_root
                 )
             roles = self.temp['roles.tmpl'].render(
                 roles=self.roles.flatten,
@@ -1059,6 +1067,7 @@ class LdapCherry(object):
                 graph_js=graph_js,
                 roles_js=roles_js,
                 current_roles=None,
+                context_root=self.context_root
                 )
             return self.temp['adduser.tmpl'].render(
                 form=form,
@@ -1066,6 +1075,7 @@ class LdapCherry(object):
                 is_admin=is_admin,
                 custom_js=self.custom_js,
                 notifications=self._empty_notification(),
+                context_root=self.context_root
                 )
         except NameError:
             raise TemplateRenderError(
@@ -1081,7 +1091,7 @@ class LdapCherry(object):
         try:
             referer = cherrypy.request.headers['Referer']
         except Exception as e:
-            referer = '/ldap'
+            referer = self.context_root
         self._deleteuser(user)
         self._add_notification('User Deleted')
         raise cherrypy.HTTPRedirect(referer)
@@ -1100,7 +1110,7 @@ class LdapCherry(object):
             try:
                 referer = cherrypy.request.headers['Referer']
             except Exception as e:
-                referer = '/ldap'
+                referer = self.context_root
             raise cherrypy.HTTPRedirect(referer)
 
         graph = {}
@@ -1118,7 +1128,8 @@ class LdapCherry(object):
             return self.temp['error.tmpl'].render(
                 is_admin=is_admin,
                 alert='warning',
-                message="No user requested"
+                message="No user requested",
+                context_root=self.context_root
                 )
 
         user_attrs = self._get_user(user)
@@ -1127,7 +1138,8 @@ class LdapCherry(object):
             return self.temp['error.tmpl'].render(
                 is_admin=is_admin,
                 alert='warning',
-                message="User '" + user + "' does not exist"
+                message="User '" + user + "' does not exist",
+                context_root=self.context_root
                 )
         tmp = self._get_roles(user)
         user_roles = tmp['roles']
@@ -1141,7 +1153,8 @@ class LdapCherry(object):
                 values=user_attrs,
                 modify=True,
                 keyattr=key,
-                autofill=False
+                autofill=False,
+                context_root=self.context_root
                 )
 
             roles = self.temp['roles.tmpl'].render(
@@ -1150,6 +1163,7 @@ class LdapCherry(object):
                 graph_js=graph_js,
                 roles_js=roles_js,
                 current_roles=user_roles,
+                context_root=self.context_root
             )
 
             glued_template = self.temp['modify.tmpl'].render(
@@ -1160,6 +1174,7 @@ class LdapCherry(object):
                 backends_display_names=self.backends_display_names,
                 custom_js=self.custom_js,
                 notifications=self._empty_notification(),
+                context_root=self.context_root
             )
         except NameError:
             raise TemplateRenderError(
@@ -1177,6 +1192,7 @@ class LdapCherry(object):
         return self.temp['404.tmpl'].render(
             is_admin=is_admin,
             notifications=self._empty_notification(),
+            context_root=self.context_root
             )
 
     @cherrypy.expose
@@ -1191,7 +1207,8 @@ class LdapCherry(object):
             return self.temp['error.tmpl'].render(
                 is_admin=is_admin,
                 alert='warning',
-                message="Not accessible with authentication disabled."
+                message="Not accessible with authentication disabled.",
+                context_root=self.context_root
                 )
         if cherrypy.request.method.upper() == 'POST':
             params = self._parse_params(params)
@@ -1206,19 +1223,22 @@ class LdapCherry(object):
                 return self.temp['error.tmpl'].render(
                     is_admin=is_admin,
                     alert='warning',
-                    message="User doesn't exist"
+                    message="User doesn't exist",
+                    context_root=self.context_root
                     )
 
             form = self.temp['form.tmpl'].render(
                 attributes=self.attributes.get_selfattributes(),
                 values=user_attrs,
                 modify=True,
-                autofill=False
+                autofill=False,
+                context_root=self.context_root
                 )
             return self.temp['selfmodify.tmpl'].render(
                 form=form,
                 is_admin=is_admin,
                 notifications=self._empty_notification(),
+                context_root=self.context_root
                 )
         except NameError:
             raise TemplateRenderError(
