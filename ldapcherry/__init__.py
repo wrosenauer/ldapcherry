@@ -41,8 +41,19 @@ SESSION_KEY = '_cp_username'
 
 
 class LdapCherry(object):
+
     def __init__(self):
         self.context_root = '/'
+
+    def exception_handler(self, status, message='', traceback='', version=''):
+        cherrypy.response.status = status
+        return self.temp['error.tmpl'].render(
+            # is_admin=self._check_admin(),
+            alert='danger',
+            message=message,
+            traceback=traceback,
+            context_root=self.context_root
+            )
 
     def _handle_exception(self, e):
         if hasattr(e, 'log'):
@@ -410,6 +421,7 @@ class LdapCherry(object):
                     'debug',
                     )
                 )
+            cherrypy.config.update({'error_page.default': self.exception_handler})
             # set context root
             self.context_root=self._get_param('global','context_root',config,'/')
             # configure access log
