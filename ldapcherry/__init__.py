@@ -604,7 +604,7 @@ class LdapCherry(object):
             # return to login page (with quoted url in query string)
             if redir_login:
                 raise cherrypy.HTTPRedirect(
-                    self.context_root+"signin?url=%(url)s" % {'url': quoted_requrl},
+                    "signin?url=%(url)s" % {'url': quoted_requrl},
                     )
             else:
                 raise cherrypy.HTTPError(
@@ -616,7 +616,7 @@ class LdapCherry(object):
                 or not cherrypy.session['connected']:
             if redir_login:
                 raise cherrypy.HTTPRedirect(
-                    self.context_root+"signin?url=%(url)s" % {'url': quoted_requrl},
+                    "signin?url=%(url)s" % {'url': quoted_requrl},
                     )
             else:
                 raise cherrypy.HTTPError(
@@ -641,7 +641,7 @@ class LdapCherry(object):
         else:
             if redir_login:
                 raise cherrypy.HTTPRedirect(
-                    self.context_root+"signin?url=%(url)s" % {'url': quoted_requrl},
+                    "signin?url=%(url)s" % {'url': quoted_requrl},
                     )
             else:
                 raise cherrypy.HTTPError(
@@ -944,7 +944,7 @@ class LdapCherry(object):
                 qs = ''
             else:
                 qs = '?url=' + quote_plus(url)
-            raise cherrypy.HTTPRedirect(self.context_root+"signin" + qs)
+            raise cherrypy.HTTPRedirect("signin" + qs)
 
     @cherrypy.expose
     @exception_decorator
@@ -961,7 +961,7 @@ class LdapCherry(object):
             msg="user '%(user)s' logout" % {'user': username},
             severity=logging.INFO
         )
-        raise cherrypy.HTTPRedirect(self.context_root+"signin")
+        raise cherrypy.HTTPRedirect("signin")
 
     @cherrypy.expose
     @exception_decorator

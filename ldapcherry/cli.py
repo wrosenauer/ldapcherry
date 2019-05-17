@@ -44,15 +44,8 @@ def start(configfile=None, daemonize=False, environment=None,
         return result
     cherrypy.lib.reprconf.Parser.as_dict = new_as_dict
 
-    class Root(object):
-        @cherrypy.expose
-        def index(self):
-            return 'Nothing here'
-
     instance = LdapCherry()
-    if context_root != '/':
-        root= cherrypy.tree.mount(Root())
-    app = cherrypy.tree.mount(instance, context_root, configfile)
+    app = cherrypy.tree.mount(instance, '/', configfile)
     cherrypy.config.update(configfile)
     instance.reload(app.config, debug)
 
@@ -145,13 +138,13 @@ def main():
     if not os.path.isfile(options.config):
         print('configuration file "' + options.config + '" doesn\'t exist')
         exit(1)
-    
+
     context_root='/'
     try:
         config = configparser.ConfigParser()
         config.read(options.config)
         context_root=config['global'].get('context_root','"/"')[1:-1]
-        print(context_root)
+        print("Using base URL ", context_root)
     except Exception as e:
         print("something wrong with config file",str(e))
         exit(1)
