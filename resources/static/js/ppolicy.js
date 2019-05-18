@@ -6,7 +6,7 @@ $('#form').validator({
             };
             var $ret = 'PPolicy error';
             $.ajax({
-                url: context_root+'checkppolicy',
+                url: 'checkppolicy',
                 type: 'POST',
                 dataType: 'json',
                 async: false,
